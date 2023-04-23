@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.28307.1738
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IPP_LR2", "IPP_LR2\IPP_LR2.vcxproj", "{4144DE38-C114-49A2-9BA1-5C50DE2324F6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSHalt", "CSHalt\CSHalt.csproj", "{F5564A21-7B0B-4806-8F63-9DAF324C83FA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IPP_LR2_CSH", "CSHalt\IPP_LR2_CSH.csproj", "{F5564A21-7B0B-4806-8F63-9DAF324C83FA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -10,7 +10,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Collections.Generic;
 
-namespace CSHalt
+namespace IPP_LR2_CSH
 {
     class Program
     {
