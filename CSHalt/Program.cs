@@ -3,12 +3,8 @@
 Після чого, починає процес запуску програм кілька разів. 
 Якщо ліміт програм вичерпаний, наступна програма автоматично завершує роботу.*/
 using System;
-using System.Linq;
-using System.IO;
 using System.Threading;
 using System.Diagnostics;
-using System.Reflection;
-using System.Collections.Generic;
 using System.Security.AccessControl;
 
 namespace IPP_LR2_CSH
@@ -19,9 +15,9 @@ namespace IPP_LR2_CSH
 
         static void Main(string[] args)
         {
-          //  Alternative.StartThreads();
-#region var 2
-            const string semaphoreName = "SemaphoreExample5";
+            //  Alternative.StartThreads();
+            #region var 2
+            const string semaphoreName = "SemaphoreExample2";
             Semaphore _pool = null;
             bool doesNotExist = false;
             bool unauthorized = false;
@@ -126,7 +122,7 @@ namespace IPP_LR2_CSH
                 Console.WriteLine("Unauthorized access: {0}", ex.Message);
             }
             KillAllProceses();
-#endregion
+
         }
         static void KillAllProceses()
         {
@@ -136,13 +132,14 @@ namespace IPP_LR2_CSH
                 var processes = Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName);
                 foreach (var pr in processes)
                 {
-                   if(pr.Id != Process.GetCurrentProcess().Id)
+                    if (pr.Id != Process.GetCurrentProcess().Id)
                     {
                         pr.Kill();
                     }
                 }
             }
         }
+        #endregion
     }
 }
 
