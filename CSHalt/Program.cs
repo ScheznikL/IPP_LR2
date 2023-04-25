@@ -25,7 +25,6 @@ namespace IPP_LR2_CSH
                 bool unauthorized = false;
 
                 CheckOnExistingSemaphore(semaphoreName, ref _pool, ref doesNotExist, ref unauthorized);
-
                 if (doesNotExist)
                 {
                     CreateSemaphore(semaphoreName, ref _pool);
@@ -53,7 +52,7 @@ namespace IPP_LR2_CSH
                 Console.WriteLine("Press the Enter key to exit.");
 
                 Console.ReadLine();
-                _pool.Release();
+                _pool.Release(); 
             }
             catch (UnauthorizedAccessException ex)
             {
