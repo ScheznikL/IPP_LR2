@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 
@@ -11,8 +10,6 @@ namespace IPP_LR2_CSH
     public static class Alternative
     {
         private static Semaphore _pool = null;
-        private static List<Process> listOfKilledProceses = new List<Process>();
-        private static List<Process> listOfAllProcess = new List<Process>();
         private static int _padding;
         private static int _userAmount, _userThreadsAmount;
         public static void StartThreads()
@@ -59,7 +56,6 @@ namespace IPP_LR2_CSH
             Console.WriteLine("Thread {0} enters the semaphore.", num);
             Process myProcess = new Process();
             myProcess.StartInfo.FileName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
-            listOfAllProcess.Add(myProcess);
             if (!myProcess.Start())
             {
                 Console.WriteLine($"Thread {num} wasn't starteds.", num);
@@ -71,7 +67,6 @@ namespace IPP_LR2_CSH
                 num, previousReleareCount);
             if (previousReleareCount == 0)
             {
-                listOfKilledProceses.Add(myProcess);
                 myProcess.Kill();
                 var th = Thread.CurrentThread;
             }

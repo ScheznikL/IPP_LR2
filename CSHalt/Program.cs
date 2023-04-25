@@ -50,11 +50,9 @@ namespace IPP_LR2_CSH
                     return;
                 }
                 bool semaphoreWasCreated = false;
-
                 _pool = new Semaphore(0, _userAmount, semaphoreName,
                     out semaphoreWasCreated);
                 _pool.Release(_userAmount);
-
                 if (semaphoreWasCreated)
                 {
                     Console.WriteLine("Created the semaphore.");
