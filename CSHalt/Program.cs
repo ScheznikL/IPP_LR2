@@ -9,143 +9,141 @@ using System.Threading;
 using System.Diagnostics;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Security.AccessControl;
 
 namespace IPP_LR2_CSH
 {
     class Program
     {
-        private static Semaphore _pool;
-        private static List<Process> listOfKilledProceses = new List<Process>();
-        private static List<Process> listOfAllProcess = new List<Process>();
-        private static int _padding;
         private static int _userAmount;
 
         static void Main(string[] args)
         {
-            //Console.SetWindowPosition(0, 0);
-            Console.WriteLine("Enter max amount of copy of this program.");
+          //  Alternative.StartThreads();
+#region var 2
+            const string semaphoreName = "SemaphoreExample5";
+            Semaphore _pool = null;
+            bool doesNotExist = false;
+            bool unauthorized = false;
+
             try
             {
-                _userAmount = Convert.ToInt32(Console.ReadLine());
+                _pool = Semaphore.OpenExisting(semaphoreName, SemaphoreRights.Synchronize
+                | SemaphoreRights.Modify);
             }
-            catch(Exception ex)
+            catch (WaitHandleCannotBeOpenedException)
             {
-                Console.WriteLine(ex.Message);
-                return;
+                Console.WriteLine("Semaphore does not exist.");
+                doesNotExist = true;
             }
-            //try                
-            //{
-            //    Semaphore.OpenExisting("semaphoreLrIPP");
-            //}
-            //catch(WaitHandleCannotBeOpenedException e)
-            //{
-            //    Console.WriteLine(e.Message);
-            //    _pool= new Semaphore()
-            //}
-            //Console.WriteLine("Enter number of times that program will be of copy of this program.");
-            //try
-            //{
-            //    _userAmount = Convert.ToInt32(Console.ReadLine());
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.WriteLine(ex.Message);
-            //    return;
-            //}
-
-
-            // Create a semaphore that can satisfy up to three
-            // concurrent requests. Use an initial count of zero,
-            // so that the entire semaphore count is initially
-            // owned by the main program thread.
-            //
-            _pool = new Semaphore(initialCount: 0, maximumCount: _userAmount);
-            
-            // Create and start five numbered threads. 
-            //
-            for (int i = 1; i < 11; i++)
+            catch (UnauthorizedAccessException ex)
             {
-                Thread t = new Thread(Worker);
-                t.IsBackground = true;
-                t.Name = i.ToString();
-                // Start the thread, passing the number.
-                t.Start(i);
+                Console.WriteLine("Unauthorized access: {0}", ex.Message);
+                unauthorized = true;
             }
-
-            // Wait for half a second, to allow all the
-            // threads to start and to block on the semaphore.
-            //
-            Thread.Sleep(100 * 11);
-
-            // The main thread starts out holding the entire
-            // semaphore count. Calling Release(3) brings the 
-            // semaphore count back to its maximum value, and
-            // allows the waiting threads to enter the semaphore,
-            // up to three at a time.
-            //
-            Console.WriteLine($"Main thread calls Release({_userAmount}).");
-            _pool.Release(releaseCount: _userAmount);
-
-            Console.WriteLine("Main thread exits.\nType s to stop all proceses.");
-            if (Console.ReadLine() == "s")
+            if (doesNotExist)
             {
-                foreach (var proc in listOfAllProcess.Except(listOfKilledProceses))
+                Console.WriteLine("Enter max amount of copy of this program.");
+                try
                 {
-                    proc.Kill();
+                    _userAmount = Convert.ToInt32(Console.ReadLine());
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    return;
+                }
+                bool semaphoreWasCreated = false;
+
+                _pool = new Semaphore(0, _userAmount, semaphoreName,
+                    out semaphoreWasCreated);
+                _pool.Release(_userAmount);
+
+                if (semaphoreWasCreated)
+                {
+                    Console.WriteLine("Created the semaphore.");
+                }
+                else
+                {
+                    Console.WriteLine("Unable to create the semaphore.");
+                    return;
+                }
+            }
+            else if (unauthorized)
+            {
+                try
+                {
+                    _pool = Semaphore.OpenExisting(
+                        semaphoreName,
+                        SemaphoreRights.ReadPermissions
+                            | SemaphoreRights.ChangePermissions);
+
+                    SemaphoreSecurity semSec = _pool.GetAccessControl();
+
+                    string user = Environment.UserDomainName + "\\"
+                        + Environment.UserName;
+
+                    SemaphoreAccessRule rule = new SemaphoreAccessRule(
+                        user,
+                        SemaphoreRights.Synchronize | SemaphoreRights.Modify,
+                        AccessControlType.Deny);
+                    semSec.RemoveAccessRule(rule);
+
+                    rule = new SemaphoreAccessRule(user,
+                         SemaphoreRights.Synchronize | SemaphoreRights.Modify,
+                         AccessControlType.Allow);
+                    semSec.AddAccessRule(rule);
+
+                    _pool.SetAccessControl(semSec);
+
+                    Console.WriteLine("Updated semaphore security.");
+
+                    _pool = Semaphore.OpenExisting(semaphoreName, SemaphoreRights.Synchronize
+                     | SemaphoreRights.Modify);
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    Console.WriteLine("Unable to change permissions: {0}", ex.Message);
+                    return;
+                }
+            }
+            bool flag = false;
+            try
+            {
+                flag = _pool.WaitOne(150);
+                if (!flag)
+                {
+                    Environment.Exit(0);
+                }
+                Console.WriteLine("Entered the semaphore.");
+                Console.WriteLine("Press the Enter key to exit.");
+
+                Console.ReadLine();
+                _pool.Release();
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                Console.WriteLine("Unauthorized access: {0}", ex.Message);
+            }
+            KillAllProceses();
+#endregion
+        }
+        static void KillAllProceses()
+        {
+            Console.WriteLine("Type s to stop all proceses.");
+            if (Console.ReadLine().ToLower() == "s")
+            {
+                var processes = Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName);
+                foreach (var pr in processes)
+                {
+                   if(pr.Id != Process.GetCurrentProcess().Id)
+                    {
+                        pr.Kill();
+                    }
                 }
             }
         }
-        private static void Worker(object num)
-        {
-            // Each worker thread begins by requesting the
-            // semaphore.
-            /*Console.WriteLine("Thread {0} begins " +
-                "and waits for the semaphore.", num);*/
-            _pool.WaitOne();
-
-            // A padding interval to make the output more orderly.
-            int padding = Interlocked.Add(ref _padding, 100);
-
-            Console.WriteLine("Thread {0} enters the semaphore.", num);
-
-            // The thread's "work" consists of sleeping for 
-            // about a second. Each thread "works" a little 
-            // longer, just to make the output more orderly.
-
-            /*  using (*/
-            Process myProcess = new Process();/*)*/
-                                              // {
-                                              // myProcess.StartInfo.UseShellExecute = false;
-                                              // You can start any process, HelloWorld is a do-nothing example.
-            myProcess.StartInfo.FileName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
-            //myProcess.PriorityClass = ProcessPriorityClass.Idle;
-            // myProcess.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
-            listOfAllProcess.Add(myProcess);
-            //  myProcess.StartInfo.CreateNoWindow = false;
-            //myProcess.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
-            if (!myProcess.Start())
-            {
-                Console.WriteLine($"Thread {num} wasn't starteds.", num);
-            }
-            // This code assumes the process you are starting will terminate itself.
-            // Given that it is started without a window so you cannot terminate it
-            // on the desktop, it must terminate itself or you can do it programmatically
-            // from this application using the Kill method.
-
-            Thread.Sleep(1000 + padding);
-            var previousReleareCount = _pool.Release();
-            Console.WriteLine("Thread {0} releases the semaphore.", num);
-            Console.WriteLine("Thread {0} previous semaphore count: {1}",
-                num, previousReleareCount);
-            //previousReleareCount = _pool.Release();
-            if (previousReleareCount == 0)
-            {
-                listOfKilledProceses.Add(myProcess);
-                myProcess.Kill();
-                // _pool.Release(/*(int)num +*/ 1);
-                var th = Thread.CurrentThread;
-            }
-            //}
-        }
     }
 }
+
+
