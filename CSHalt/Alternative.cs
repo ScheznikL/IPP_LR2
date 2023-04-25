@@ -37,7 +37,7 @@ namespace IPP_LR2_CSH
 
             _pool = new Semaphore(initialCount: 0, maximumCount: _userAmount);
 
-            for (int i = 1; i < _userThreadsAmount; i++)
+            for (int i = 1; i < _userThreadsAmount + 5; i++)
             {
                 Thread t = new Thread(Worker);
                 t.IsBackground = true;
