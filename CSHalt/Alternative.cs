@@ -50,14 +50,6 @@ namespace IPP_LR2_CSH
             Thread.Sleep(100 * _userThreadsAmount);
             Console.WriteLine($"Main thread calls Release({_userAmount}).");
             _pool.Release(releaseCount: _userAmount);
-            Console.WriteLine("Main thread exits.\nType s to stop all proceses.");
-            if (Console.ReadLine() == "s")
-            {
-                foreach (var proc in listOfAllProcess.Except(listOfKilledProceses))
-                {
-                    proc.Kill();
-                }
-            }
         }
         private static void Worker(object num)
         {

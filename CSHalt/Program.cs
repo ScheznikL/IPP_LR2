@@ -121,10 +121,10 @@ namespace IPP_LR2_CSH
             {
                 Console.WriteLine("Unauthorized access: {0}", ex.Message);
             }
-            KillAllProceses();
-
+ #endregion
+            KillAllProcesses();
         }
-        static void KillAllProceses()
+        static void KillAllProcesses()
         {
             Console.WriteLine("Type s to stop all proceses.");
             if (Console.ReadLine().ToLower() == "s")
@@ -139,7 +139,7 @@ namespace IPP_LR2_CSH
                 }
             }
         }
-        #endregion
+       
     }
 }
 
